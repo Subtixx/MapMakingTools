@@ -1,12 +1,14 @@
 package mapmakingtools.tools.filter;
 
 import java.util.List;
+import java.util.Objects;
 
 import mapmakingtools.api.interfaces.IFilterClient;
 import mapmakingtools.api.interfaces.IGuiFilter;
 import mapmakingtools.client.gui.button.GuiSmallButton;
 import mapmakingtools.helper.ClientHelper;
 import mapmakingtools.helper.TextHelper;
+import mapmakingtools.helper.VillagerHelper;
 import mapmakingtools.network.PacketDispatcher;
 import mapmakingtools.tools.filter.packet.PacketVillagerProfession;
 import net.minecraft.client.gui.GuiButton;
@@ -41,9 +43,7 @@ public class VillagerProfessionClientFilter extends IFilterClient {
 	
 	@Override
 	public boolean isApplicable(EntityPlayer player, Entity entity) {
-		if(entity instanceof EntityVillager)
-			return true;
-		return false;
+		return entity instanceof EntityVillager;
 	}
 	
 	@Override
@@ -95,7 +95,7 @@ public class VillagerProfessionClientFilter extends IFilterClient {
 		int topX = (gui.getWidth() - gui.xFakeSize()) / 2;
         int topY = (gui.getHeight() - gui.yFakeSize()) / 2;
         gui.getFont().drawString(this.getFilterName(), topX - gui.getFont().getStringWidth(this.getFilterName()) / 2 + gui.xFakeSize() / 2, topY + 10, 0);
-        
-        gui.getFont().drawString("ID: " + this.professionId, topX + 30, topY + 35, 0);
+
+        gui.getFont().drawString(String.format("%s (ID: %d)", I18n.translateToLocal(VillagerHelper.FixProfessionName(this.professionId)), this.professionId), topX + 30, topY + 35, 0);
 	}
 }

@@ -109,8 +109,8 @@ task incrementBuildNumber(dependsOn: 'reobfJar') << {
         config.toProperties().store(it, "")
     }
 
-    file('web/versions.ini').append("\n${version}=${minecraft.version}")
-    file("${config.dir_repo}/version/${minecraft.version}.txt").write("${version}")
+    //file('web/versions.ini').append("\n${version}=${minecraft.version}")
+    //file("${config.dir_repo}/version/${minecraft.version}.txt").write("${version}")
 }
 
 def parseConfig(File config) {

@@ -1,8 +1,10 @@
 package mapmakingtools.tools.filter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.text.translation.I18n;
 import org.lwjgl.opengl.GL11;
 
@@ -57,10 +59,8 @@ public class VillagerShopClientFilter extends IFilterClient {
 
 	@Override
 	public boolean isApplicable(EntityPlayer player, Entity entity) {
-		if(entity instanceof EntityVillager)
-			return true;
-		return false;
-	}
+        return entity instanceof EntityVillager;
+    }
 
 	@Override
 	public void initGui(IGuiFilter gui) {
@@ -71,7 +71,7 @@ public class VillagerShopClientFilter extends IFilterClient {
 	    this.btn_ok = new GuiButton(0, topX + 12, topY + 108, 20, 20, "OK");
 	    this.btn_add = new GuiSmallButton(2, topX + 224, topY + 68, 13, 12, "+");
 	    this.btn_remove = new GuiSmallButton(3, topX + 224, topY + 54, 13, 12, "-");
-	    this.btn_trade_1 = new GuiSmallButton(4, topX - 1 + 1 * 23, topY + 88, 13, 12, "?");
+	    this.btn_trade_1 = new GuiSmallButton(4, topX - 1 + 23, topY + 88, 13, 12, "?");
 	    this.btn_trade_2 = new GuiSmallButton(5, topX - 1 + 2 * 23, topY + 88, 13, 12, "?");
 	    this.btn_trade_3 = new GuiSmallButton(6, topX - 1 + 3 * 23, topY + 88, 13, 12, "?");
 	    this.btn_trade_4 = new GuiSmallButton(7, topX - 1 + 4 * 23, topY + 88, 13, 12, "?");
@@ -117,7 +117,7 @@ public class VillagerShopClientFilter extends IFilterClient {
 	    	MerchantRecipeList recipeList = villager.getRecipes(gui.getPlayer());
 	    	
 	    	for(int i = 0; i < recipeList.size(); ++i)
-	    		this.recipeUses[i] = ((MerchantRecipe)recipeList.get(i)).getMaxTradeUses();
+	    		recipeUses[i] = ((MerchantRecipe)recipeList.get(i)).getMaxTradeUses();
 	    }
 	}
 	
@@ -141,7 +141,20 @@ public class VillagerShopClientFilter extends IFilterClient {
     		GuiButton listBt = (GuiButton)gui.getButtonList().get(var1);
     		if(listBt.id >= 4 && listBt.id <= 12) {
         		if(listBt.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
-        			List<String> list = Arrays.asList(TextFormatting.BLUE + "Trade " + (listBt.id - 3), "Uses: " + this.recipeUses[listBt.id - 4], "Left Click = " + TextFormatting.RED+ "-1", "Right Click = " + TextFormatting.GREEN + "+1");
+        			//List<String> list = Arrays.asList(TextFormatting.BLUE + "Trade " + (listBt.id - 3), "Uses: " + this.recipeUses[listBt.id - 4], "Left Click = " + TextFormatting.RED+ "-1", "Right Click = " + TextFormatting.GREEN + "+1");
+        			List<String> list = new ArrayList<>();
+                    list.add(TextFormatting.BLUE + "Trade " + (listBt.id - 3));
+                    list.add("Uses: " + recipeUses[listBt.id - 4]);
+                    list.add(TextFormatting.DARK_GRAY+"------------------");
+                    list.add("Left Click = " + TextFormatting.RED+ "-1");
+                    list.add("Ctrl+Shift Left Click = " + TextFormatting.RED+ "-5");
+                    list.add("Shift Left Click = " + TextFormatting.RED+ "-10");
+                    list.add("Ctrl Left Click = " + TextFormatting.RED+ "-100");
+                    list.add(TextFormatting.DARK_GRAY+"------------------");
+                    list.add("Right Click = " + TextFormatting.GREEN + "+1");
+                    list.add("Ctrl+Shift Right Click = " + TextFormatting.GREEN + "+5");
+                    list.add("Shift Right Click = " + TextFormatting.GREEN + "+10");
+                    list.add("Ctrl Right Click = " + TextFormatting.GREEN + "+100");
         			gui.drawHoveringText2(list, xMouse, yMouse);
         		}
     		}
@@ -178,11 +191,18 @@ public class VillagerShopClientFilter extends IFilterClient {
 
                 if (guibutton.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
                 	//gui.selectedButton = guibutton;
+                    int toAdd = 1;
+                    if(GuiScreen.isShiftKeyDown() && GuiScreen.isCtrlKeyDown())
+                        toAdd = 5;
+                    else if(GuiScreen.isShiftKeyDown())
+                        toAdd = 10;
+                    else if(GuiScreen.isCtrlKeyDown())
+                        toAdd = 100;
                     if(guibutton.id >= 4 && guibutton.id <= 12) {
-                    	this.recipeUses[guibutton.id - 4] = this.recipeUses[guibutton.id - 4] + 1;
+                    	recipeUses[guibutton.id - 4] = recipeUses[guibutton.id - 4] + toAdd;
       
-                    	if(this.recipeUses[guibutton.id - 4] < 1)
-                    		this.recipeUses[guibutton.id - 4] = 1;
+                    	if(recipeUses[guibutton.id - 4] < 1)
+                    		recipeUses[guibutton.id - 4] = 1;
                     }
                 }
             }
@@ -195,18 +215,25 @@ public class VillagerShopClientFilter extends IFilterClient {
 		
 		if (button.enabled) {
 			if(button.id >= 4 && button.id <= 12) {
-            	this.recipeUses[button.id - 4] = this.recipeUses[button.id - 4] - 1;
+                int toAdd = 1;
+                if(GuiScreen.isShiftKeyDown() && GuiScreen.isCtrlKeyDown())
+                    toAdd = 5;
+                else if(GuiScreen.isShiftKeyDown())
+                    toAdd = 10;
+                else if(GuiScreen.isCtrlKeyDown())
+                    toAdd = 100;
 
-            	if(this.recipeUses[button.id - 4] < 1) {
-            		this.recipeUses[button.id - 4] = 1;
+            	recipeUses[button.id - 4] = recipeUses[button.id - 4] - toAdd;
+
+            	if(recipeUses[button.id - 4] < 1) {
+            		recipeUses[button.id - 4] = 1;
             	}
             }
 			
         	int recipeAmounts = 0;
             switch (button.id) {
                 case 0:
-                	PacketDispatcher.sendToServer(new PacketVillagerShop(gui.getEntityId(), this.recipeUses));
-                    
+                	PacketDispatcher.sendToServer(new PacketVillagerShop(gui.getEntityId(), recipeUses));
                 case 1:
                     ClientHelper.mc.thePlayer.closeScreen();
                     break;

@@ -11,7 +11,7 @@ public class ModItems {
 
 	public static Item editItem;
 	
-	public static void inti() {
+	public static void init() {
 		editItem = new ItemEdit().setUnlocalizedName("mapmakingtools:edititem");
 		
 		GameRegistry.registerItem(editItem, "edit_item");

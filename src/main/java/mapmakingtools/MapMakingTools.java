@@ -1,18 +1,10 @@
 package mapmakingtools;
 
-import mapmakingtools.handler.ActionHandler;
-import mapmakingtools.handler.CommandHandler;
-import mapmakingtools.handler.ConfigurationHandler;
-import mapmakingtools.handler.EntityJoinWorldHandler;
-import mapmakingtools.handler.PlayerTrackerHandler;
-import mapmakingtools.handler.WorldSaveHandler;
-import mapmakingtools.helper.MapMakingToolsVersion;
+import mapmakingtools.handler.*;
 import mapmakingtools.lib.Reference;
 import mapmakingtools.network.PacketDispatcher;
 import mapmakingtools.proxy.CommonProxy;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -37,8 +29,8 @@ public class MapMakingTools {
 	
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-    	ConfigurationHandler.initConfig(new Configuration(event.getSuggestedConfigurationFile()));
-    	MapMakingToolsVersion.startVersionCheck();
+    	ConfigurationHandler.loadConfig(event.getSuggestedConfigurationFile());
+
     	proxy.onPreLoad();
     	PacketDispatcher.registerPackets();
     }
@@ -50,7 +42,9 @@ public class MapMakingTools {
     	MinecraftForge.EVENT_BUS.register(new WorldSaveHandler());
     	MinecraftForge.EVENT_BUS.register(new EntityJoinWorldHandler());
     	MinecraftForge.EVENT_BUS.register(new PlayerTrackerHandler());
-    	ModItems.inti();
+
+    	ModItems.init();
+
     	proxy.registerFilters();  
     	proxy.registerRotation();
     	proxy.registerItemAttribute();

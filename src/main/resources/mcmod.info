@@ -2,8 +2,13 @@
 	"modid": "mapmakingtools",
 	"name": "Map Making Tools",
 	"description": "Very useful for making custom adventure maps.",
-	"version": "v2.5.1",
-	"mcversion": "1.10.2",
-	"authors": [ "ProPercivalalb", "Subtixx" ],
-	"credits": "Authored By ProPercivalalb, 1.10.2 port by Subtixx"
+	"version": "${version}",
+    "mcversion": "${mcversion}",
+    "logoFile": "assets/mapmakingtools/textures/logo.png",
+    "url": "https://github.com/Subtixx/MapMakingTools",
+	"authorList": [ "ProPercivalalb" ],
+	"credits": "Authored By ProPercivalalb, 1.10.2 port by Subtixx",
+	"parent": "",
+    "screenshots": [],
+    "dependencies": []
 }]

@@ -1,7 +1,5 @@
 package mapmakingtools.client.gui;
 
-import mapmakingtools.handler.ConfigurationHandler;
-import mapmakingtools.lib.Constants;
 import mapmakingtools.lib.Reference;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -10,7 +8,6 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.config.GuiConfig;
 
 import static mapmakingtools.handler.ConfigurationHandler.config;
-import static mapmakingtools.handler.ConfigurationHandler.loadConfig;
 
 public class GuiConfigMapMakingTools extends GuiConfig
 {
@@ -47,9 +44,9 @@ public class GuiConfigMapMakingTools extends GuiConfig
     @Override
     protected void actionPerformed(GuiButton button)
     {
-        if(button.id == 2000){
-            loadConfig();
-        }
+        /*if(button.id == 2000){
+            load();
+        }*/
         super.actionPerformed(button);
     }
 }

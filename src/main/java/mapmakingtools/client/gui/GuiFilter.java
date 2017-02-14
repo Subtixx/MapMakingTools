@@ -107,9 +107,8 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
 			GL11.glScaled(0.588D, 0.588D, 0.588D);
 			GL11.glPopMatrix();
 		}
-		
-		for(int i = 0; i < this.textboxList.size(); ++i)
-        	((GuiTextField)this.textboxList.get(i)).drawTextBox();
+
+        for (Object aTextboxList : this.textboxList) ((GuiTextField) aTextboxList).drawTextBox();
 	}
 	
 	@Override
@@ -138,48 +137,47 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
 			filterCurrent.drawGuiContainerForegroundLayer(this, xMouse, yMouse);
 		
 		GL11.glTranslatef((float)-this.guiLeft, (float)-this.guiTop, 0.0F);
-		for(int var1 = 0; var1 < this.buttonList.size(); ++var1) {
-    		GuiButton listBt = (GuiButton)this.buttonList.get(var1);
-    		if(listBt instanceof GuiTabSelect) {
-        		GuiTabSelect button = (GuiTabSelect)listBt;
-        		if(button.isMouseAbove(xMouse, yMouse)) {
-        			List<String> list = new ArrayList<String>();
-        			list.add(button.filter.getFilterName());
-        			if(button.filter.showErrorIcon(this)) {
-        				String errorMessage = button.filter.getErrorMessage(this);
-        				if(errorMessage != null)
-        					list.add(errorMessage);
-        			}
-        			this.drawHoveringText(list, xMouse, yMouse);
-        		}
-    		}
-    		else if(listBt instanceof GuiSmallButton && listBt.id == 156) {
-    			GuiSmallButton button = (GuiSmallButton)listBt;
-        		if(button.isMouseAbove(xMouse, yMouse)) {
-        			List<String> list = this.filterCurrent.getFilterInfo(this);
-        			this.drawHoveringText(list, xMouse, yMouse);
-        		}
-    		}
-    		//if(listBt instanceof GuiButtonCancel) {
-    		//	GuiButtonCancel tab = (GuiButtonCancel)listBt;
-        	//	if(tab.isMouseAbove(xMouse, yMouse)) {
-        	//		List<String> list = Arrays.asList(I18n.translateToLocal("gui.cancel"));
-        	//		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
-        	//	}
-    		//}
-    		//if(listBt.id == 148) {
-    		//	if(listBt.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
-        	//		List<String> list = Arrays.asList("Prev. Page");
-        	//		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
-        	//	}
-    		//}
-    		//if(listBt.id == 149) {
-    		//	if(listBt.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
-        	//		List<String> list = Arrays.asList("Next. Page");
-        	//		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
-        	//	}
-    		//}
-    	}
+        for (GuiButton aButtonList : this.buttonList) {
+            GuiButton listBt = (GuiButton) aButtonList;
+            if (listBt instanceof GuiTabSelect) {
+                GuiTabSelect button = (GuiTabSelect) listBt;
+                if (button.isMouseAbove(xMouse, yMouse)) {
+                    List<String> list = new ArrayList<String>();
+                    list.add(button.filter.getFilterName());
+                    if (button.filter.showErrorIcon(this)) {
+                        String errorMessage = button.filter.getErrorMessage(this);
+                        if (errorMessage != null)
+                            list.add(errorMessage);
+                    }
+                    this.drawHoveringText(list, xMouse, yMouse);
+                }
+            } else if (listBt instanceof GuiSmallButton && listBt.id == 156) {
+                GuiSmallButton button = (GuiSmallButton) listBt;
+                if (button.isMouseAbove(xMouse, yMouse)) {
+                    List<String> list = filterCurrent.getFilterInfo(this);
+                    this.drawHoveringText(list, xMouse, yMouse);
+                }
+            }
+            //if(listBt instanceof GuiButtonCancel) {
+            //	GuiButtonCancel tab = (GuiButtonCancel)listBt;
+            //	if(tab.isMouseAbove(xMouse, yMouse)) {
+            //		List<String> list = Arrays.asList(I18n.translateToLocal("gui.cancel"));
+            //		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
+            //	}
+            //}
+            //if(listBt.id == 148) {
+            //	if(listBt.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
+            //		List<String> list = Arrays.asList("Prev. Page");
+            //		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
+            //	}
+            //}
+            //if(listBt.id == 149) {
+            //	if(listBt.mousePressed(ClientHelper.mc, xMouse, yMouse)) {
+            //		List<String> list = Arrays.asList("Next. Page");
+            //		this.drawHoveringText(list, xMouse, yMouse, this.mc.fontRenderer);
+            //	}
+            //}
+        }
 		if(filterCurrent != null)
 			filterCurrent.drawToolTips(this, xMouse, yMouse);
 		GL11.glTranslatef((float)this.guiLeft, (float)this.guiTop, 0.0F);
@@ -223,7 +221,6 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
         
         if(filterCurrent != null)
         	filterCurrent.initGui(this);
-        else {}
         	//this.buttonList.add(new GuiButtonCancel(this, -1, k + 210, l + 70, 112, 220)); //cancel
         
         int realtopY = (this.height - this.ySize) / 2;
@@ -233,17 +230,17 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
         
         if(filterCurrent != null && filterCurrent.hasUpdateButton(this))
         	this.buttonList.add(new GuiSmallButton(157, topX + 20, realtopY + 4, 8, 8, "" + (char)8595));
-	
-        for(int i = 0; i < this.buttonList.size(); ++i) {
-    		if(this.buttonList.get(i) instanceof GuiTabSelect) {
-        		GuiTabSelect tab = (GuiTabSelect)(GuiButton)this.buttonList.get(i);
-        		if(tab.filter == filterCurrent) {
-        			int index = this.filterList.indexOf(filterCurrent);
-        			PacketDispatcher.sendToServer(new PacketSelectedFilter(index));
-        			this.getContainerFilter().setSelected(index);
-        			tab.isSelected = true;
-        		}
-    		}
+
+        for (GuiButton aButtonList : this.buttonList) {
+            if (aButtonList instanceof GuiTabSelect) {
+                GuiTabSelect tab = (GuiTabSelect) (GuiButton) aButtonList;
+                if (tab.filter == filterCurrent) {
+                    int index = this.filterList.indexOf(filterCurrent);
+                    PacketDispatcher.sendToServer(new PacketSelectedFilter(index));
+                    this.getContainerFilter().setSelected(index);
+                    tab.isSelected = true;
+                }
+            }
         }	
 	}
 
@@ -251,9 +248,8 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
     public void updateScreen() {
     	if(filterCurrent != null)
     		filterCurrent.updateScreen(this);
-    	
-    	for(int i = 0; i < this.textboxList.size(); ++i)
-        	((GuiTextField)this.textboxList.get(i)).updateCursorCounter();
+
+        for (Object aTextboxList : this.textboxList) ((GuiTextField) aTextboxList).updateCursorCounter();
     }
 	
     @Override
@@ -274,13 +270,13 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
             		break;
             
             	case 148:
-            		if(this.currentPage > 1) {
+            		if(currentPage > 1) {
             			--currentPage;
             			this.initGui();
             		}
             		break;
             	case 149:
-            		if(this.currentPage <= maxPages) {
+            		if(currentPage <= maxPages) {
             			++currentPage;
             			this.initGui();
             		}
@@ -305,16 +301,15 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
     protected void keyTyped(char cha, int charIndex) {
         if(filterCurrent != null)
         	filterCurrent.keyTyped(this, cha, charIndex);
-        
+
+        if (charIndex == Keyboard.KEY_ESCAPE)
+            ClientHelper.mc.thePlayer.closeScreen();
         if(filterCurrent == null || filterCurrent.doClosingKeysWork(this, cha, charIndex)) {
-            if (charIndex == Keyboard.KEY_ESCAPE)
-                ClientHelper.mc.thePlayer.closeScreen();
-            else if (charIndex == Keyboard.KEY_E)
+            if (charIndex == Keyboard.KEY_E)
                 ClientHelper.mc.thePlayer.closeScreen();
         }
-        
-        for(int i = 0; i < this.textboxList.size(); ++i)
-        	((GuiTextField)this.textboxList.get(i)).textboxKeyTyped(cha, charIndex);
+
+        for (Object aTextboxList : this.textboxList) ((GuiTextField) aTextboxList).textboxKeyTyped(cha, charIndex);
     }
     
     @Override
@@ -323,9 +318,9 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
         
         if(filterCurrent != null)
         	filterCurrent.mouseClicked(this, xMouse, yMouse, mouseButton);
-       
-        for(int i = 0; i < this.textboxList.size(); ++i)
-        	((GuiTextField)this.textboxList.get(i)).mouseClicked(xMouse, yMouse, mouseButton);
+
+        for (Object aTextboxList : this.textboxList)
+            ((GuiTextField) aTextboxList).mouseClicked(xMouse, yMouse, mouseButton);
     }
     
     public ContainerFilter getContainerFilter() {
@@ -335,13 +330,13 @@ public class GuiFilter extends GuiContainer implements IGuiFilter {
     public void unSelectBut(GuiTabSelect button) {
     	filterCurrent = button.filter;
     	this.initGui();
-    	for(int i = 0; i < this.buttonList.size(); ++i) {
-    		GuiButton listBt = (GuiButton)this.buttonList.get(i);
-    		if(listBt.id == button.id) {
-    			if(listBt instanceof GuiTabSelect)
-    				((GuiTabSelect)listBt).isSelected = true;
-    		}
-    	}
+        for (GuiButton aButtonList : this.buttonList) {
+            GuiButton listBt = (GuiButton) aButtonList;
+            if (listBt.id == button.id) {
+                if (listBt instanceof GuiTabSelect)
+                    ((GuiTabSelect) listBt).isSelected = true;
+            }
+        }
     }
     
     protected void drawHoveringText(List text, int mouseX, int mouseY, FontRenderer font) {

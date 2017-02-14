@@ -157,6 +157,16 @@ public class EditSignClientFilter extends IFilterClient {
 	public void updateScreen(IGuiFilter gui) {
 		
 	}
+
+	@Override
+    public boolean doClosingKeysWork(IGuiFilter gui, char cha, int charIndex) {
+	    if(this.txtLine1.isFocused() ||
+                this.txtLine2.isFocused() ||
+                this.txtLine3.isFocused() ||
+                this.txtLine4.isFocused())
+	        return false;
+	    return true;
+	}
 	
 	@Override
 	public List<String> getFilterInfo(IGuiFilter gui) {

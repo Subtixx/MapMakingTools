@@ -285,6 +285,5 @@ public class CommonProxy implements IGuiHandler {
 		ForceKillManager.registerHandler("guardian", new KillGeneric(EntityGuardian.class));
 		ForceKillManager.registerHandler("monster", new KillMobs());
 		ForceKillManager.registerHandler("animal", new KillAnimals());
-		
 	}
 }

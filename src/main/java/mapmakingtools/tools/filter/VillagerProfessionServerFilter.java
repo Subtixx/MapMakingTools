@@ -12,8 +12,6 @@ public class VillagerProfessionServerFilter extends IFilterServer {
 
 	@Override
 	public boolean isApplicable(EntityPlayer player, Entity entity) {
-		if(entity instanceof EntityVillager)
-			return true;
-		return false;
+		return entity instanceof EntityVillager;
 	}
 }

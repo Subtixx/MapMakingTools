@@ -1,7 +1,6 @@
 package mapmakingtools.handler;
 
 import mapmakingtools.ModItems;
-import mapmakingtools.lib.Constants;
 import mapmakingtools.tools.ClientData;
 import mapmakingtools.tools.PlayerAccess;
 import mapmakingtools.tools.PlayerData;
@@ -21,15 +20,12 @@ import org.lwjgl.util.Color;
 import java.util.HashSet;
 import java.util.Set;
 
-import static mapmakingtools.lib.Constants.RENDER_SELECTED_POSITION;
-
 /**
  * @author ProPercivalalb
  */
 public class WorldOverlayHandler {
 	
 	private static Minecraft mc = Minecraft.getMinecraft();
-	private static boolean hasCheckedVersion = false;
 
     private double playerX;
     private double playerY;
@@ -68,11 +64,15 @@ public class WorldOverlayHandler {
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 
-        renderCuboid(boundingBox, new Color(255, 255, 255, 255), Constants.RENDER_FILLED_CUBOID);
+        if(!ConfigurationHandler.renderAllBlock)
+            renderCuboid(boundingBox, new Color(255, 255, 255, 255), ConfigurationHandler.renderFilledBox && !ConfigurationHandler.renderSelectedPosition);
+        else{
+            // TODO: Make render all blocks!
+        }
 
-        if(RENDER_SELECTED_POSITION){
-            renderRectangle(new AxisAlignedBB(ClientData.playerData.getFirstPoint()), 1, 1, new Color(0, 255, 0, 255), true);
-            renderRectangle(new AxisAlignedBB(ClientData.playerData.getSecondPoint()), 1, 1, new Color(255, 0, 0, 255), true);
+        if(ConfigurationHandler.renderSelectedPosition){
+            renderRectangle(new AxisAlignedBB(ClientData.playerData.getFirstPoint(), ClientData.playerData.getFirstPoint().add(1, 1, 1)), ClientData.playerData.getFirstPoint().getY(), ClientData.playerData.getFirstPoint().getY()+1, new Color(0, 255, 0, 255), true);
+            renderRectangle(new AxisAlignedBB(ClientData.playerData.getSecondPoint(), ClientData.playerData.getSecondPoint().add(1,1,1)), ClientData.playerData.getSecondPoint().getY(), ClientData.playerData.getSecondPoint().getY()+1, new Color(255, 0, 0, 255), true);
         }
 
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);

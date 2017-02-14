@@ -1,38 +1,51 @@
 package mapmakingtools.handler;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import mapmakingtools.helper.*;
+import mapmakingtools.lib.Reference;
+import net.minecraft.block.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.model.ModelSkeletonHead;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.passive.EntityHorse;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.translation.I18n;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.common.UsernameCache;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import mapmakingtools.ModItems;
-import mapmakingtools.helper.ClientHelper;
-import mapmakingtools.helper.LogHelper;
-import mapmakingtools.helper.ReflectionHelper;
 import mapmakingtools.tools.ClientData;
 import mapmakingtools.tools.PlayerAccess;
 import mapmakingtools.tools.PlayerData;
 import mapmakingtools.tools.datareader.BlockList;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.entity.player.EntityPlayer;
@@ -47,6 +60,8 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import static mapmakingtools.helper.ClientHelper.mc;
+
 /**
  * @author ProPercivalalb
  **/
@@ -55,7 +70,7 @@ public class ScreenRenderHandler {
 	private int INDEX_HISTORY = 1;
 	private boolean hasButtonBeenUp = true;
 	public boolean isHelperOpen = false;
-	public RenderItem renderer = ClientHelper.mc.getRenderItem();
+	public RenderItem renderer = mc.getRenderItem();
 	public Field chatField = ReflectionHelper.getField(GuiChat.class, 4);
 	
 	@SubscribeEvent
@@ -65,19 +80,19 @@ public class ScreenRenderHandler {
 	    ScaledResolution resolution = event.getResolution();
 	    ElementType type = event.getType();
 		
-	    EntityPlayer player = ClientHelper.mc.thePlayer;
+	    EntityPlayer player = mc.thePlayer;
 	    World world = player.worldObj;
 		ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
 	    
         int width = resolution.getScaledWidth();
         int height = resolution.getScaledHeight();
-        int mouseX = Mouse.getX() * width / ClientHelper.mc.displayWidth;
-        int mouseY = height - Mouse.getY() * height / ClientHelper.mc.displayHeight - 1;
+        int mouseX = Mouse.getX() * width / mc.displayWidth;
+        int mouseY = height - Mouse.getY() * height / mc.displayHeight - 1;
 		
-		if(type == ElementType.HELMET && stack != null && stack.getItem() == ModItems.editItem && stack.getMetadata() == 0 && PlayerAccess.canEdit(ClientHelper.mc.thePlayer)) {
+		if(type == ElementType.HELMET && stack != null && stack.getItem() == ModItems.editItem && stack.getMetadata() == 0 && PlayerAccess.canEdit(mc.thePlayer)) {
     		
     		PlayerData data = ClientData.playerData;
-    		FontRenderer font = ClientHelper.mc.fontRendererObj;
+    		FontRenderer font = mc.fontRendererObj;
     		GL11.glPushMatrix();
     		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             RenderHelper.disableStandardItemLighting();
@@ -98,67 +113,32 @@ public class ScreenRenderHandler {
     		GL11.glPopMatrix();
 		}
 
-		if(type == ElementType.HELMET && ClientHelper.mc.currentScreen == null && stack != null && stack.getItem() == ModItems.editItem && stack.getMetadata() == 1 && PlayerAccess.canEdit(player)) {
+		if(type == ElementType.HELMET && mc.currentScreen == null && stack != null && stack.getItem() == ModItems.editItem && stack.getMetadata() == 1 && PlayerAccess.canEdit(player)) {
 
-			RayTraceResult objectMouseOver = ClientHelper.mc.objectMouseOver;
+			RayTraceResult objectMouseOver = mc.objectMouseOver;
 			
 			if(objectMouseOver != null) {
 	        	List<String> list = new ArrayList<String>();
 				
-				if(objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK) {
-	            	
-	            	IBlockState state = world.getBlockState(objectMouseOver.getBlockPos());
-	            	ResourceLocation resourceLocation = (ResourceLocation)Block.REGISTRY.getNameForObject(state.getBlock());
-	            	String id = resourceLocation.toString();
-	            	int meta = state.getBlock().getMetaFromState(state);
-	            	int stateId = Block.getStateId(state);
-	            	
-	            	list.add(TextFormatting.YELLOW + "" + id + " | " + meta + " | " + stateId);
-	        	    
-	            	ModContainer container = Loader.instance().getIndexedModList().get(resourceLocation.getResourceDomain());
-	        	    if(container != null)
-	        	    	list.add(TextFormatting.ITALIC + "" + container.getName());
-	        	    else if(resourceLocation.getResourceDomain().equals("minecraft"))
-	        	    	list.add(TextFormatting.ITALIC + "Minecraft");
-	        	    else
-	        	    	list.add(TextFormatting.ITALIC + "" + TextFormatting.RED + "Unknown");
-	        	    
-				}
-				else if(objectMouseOver.typeOfHit == RayTraceResult.Type.ENTITY) {
-	           	
-		        	Entity entity = objectMouseOver.entityHit;
-		        	String id = EntityList.getEntityString(entity);
-
-		            if(id == null && entity instanceof EntityPlayer)
-		            	id = "Player";
-		            else if(id == null && entity instanceof EntityLightningBolt)
-		            	id = "LightningBolt";
-		            
-		        	list.add(TextFormatting.YELLOW + id + " | " + entity.getEntityId());
-		        	
-		        	int i = id.indexOf(".");
-		        	if(i >= 0) {
-		        		String domain = id.substring(0, i);
-		        		ModContainer container = Loader.instance().getIndexedModList().get(domain);
-		        	    if(container != null)
-		        	    	list.add(TextFormatting.ITALIC + "" + container.getName());
-		        	    else
-		        	    	list.add(TextFormatting.ITALIC + "" + TextFormatting.RED + "Unknown");
-		        	}
-		        	else
-		        		list.add(TextFormatting.ITALIC + "Minecraft");
-	           	
-				}
+				AddBlockInfo(list, objectMouseOver);
+				AddEntityInfo(list, objectMouseOver);
 				
-            	drawHoveringText(list, 0, 25, 1000, 200, ClientHelper.mc.fontRendererObj, false);
+            	drawHoveringText(list, 0, 25, 1000, 200, mc.fontRendererObj, false);
+
+                if(objectMouseOver.typeOfHit == RayTraceResult.Type.ENTITY)
+                    mapmakingtools.helper.RenderHelper.renderEntity(objectMouseOver.entityHit, 15, 15, 10);
+                else if(objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK) {
+                    IBlockState state = world.getBlockState(objectMouseOver.getBlockPos());
+                    mapmakingtools.helper.RenderHelper.renderObject(mc, 15, 15, state.getBlock(), false);
+                }
 			}
 		}
 		
-	    if(Keyboard.isKeyDown(ClientHelper.mc.gameSettings.keyBindSneak.getKeyCode()) && PlayerAccess.canSeeBlockIdHelper(player)) {
+	    if(Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()) && PlayerAccess.canSeeBlockIdHelper(player)) {
 	    	if(type == RenderGameOverlayEvent.ElementType.HELMET) {
 	   
-	    		if(ClientHelper.mc.currentScreen instanceof GuiChat) {
-	    			GuiChat chat = (GuiChat)ClientHelper.mc.currentScreen;
+	    		if(mc.currentScreen instanceof GuiChat) {
+	    			GuiChat chat = (GuiChat) mc.currentScreen;
 	    			int chatPostion = ReflectionHelper.getField(chatField, GuiTextField.class, chat).getCursorPosition();
 	    			boolean isHovering = false;
 
@@ -238,7 +218,7 @@ public class ScreenRenderHandler {
 	    				}
 	    				
 	    				if(mouseX > 4 + 16 * column + renderOffset && mouseX < 4 + 16 * (column + 1) + renderOffset && mouseY > 4 + 16 * row && mouseY < 4 + 16 * (row + 1))
-	    					drawHoveringText(Arrays.asList(TextFormatting.GREEN + item.getDisplayName(), TextFormatting.ITALIC + String.format("%s %s", Block.REGISTRY.getNameForObject(Block.getBlockFromItem(item.getItem())), item.getItemDamage())), mouseX, mouseY, width, height, ClientHelper.mc.fontRendererObj, true);
+	    					drawHoveringText(Arrays.asList(TextFormatting.GREEN + item.getDisplayName(), TextFormatting.ITALIC + String.format("%s %s", Block.REGISTRY.getNameForObject(Block.getBlockFromItem(item.getItem())), item.getItemDamage())), mouseX, mouseY, width, height, mc.fontRendererObj, true);
 	    				column++;
 	    			}
 	    			
@@ -249,6 +229,173 @@ public class ScreenRenderHandler {
 	    	}
 	    }
 	}
+
+    private void AddBlockInfo(List<String> list, RayTraceResult objectMouseOver) {
+        if(objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK) {
+            IBlockState state = mc.theWorld.getBlockState(objectMouseOver.getBlockPos()).getActualState(mc.theWorld, objectMouseOver.getBlockPos());
+            ResourceLocation resourceLocation = (ResourceLocation)Block.REGISTRY.getNameForObject(state.getBlock());
+            String id = resourceLocation.toString();
+            Block block = state.getBlock();
+            int meta = block.getMetaFromState(state);
+            int stateId = Block.getStateId(state);
+
+            list.add(String.format(TextFormatting.WHITE+"%s (#%d/%d:%d)", block.getLocalizedName(), Block.REGISTRY.getIDForObject(block), meta, stateId));
+            list.add(String.format(TextFormatting.DARK_GRAY+"(%s)", resourceLocation.toString(), stateId));
+
+            if (block instanceof BlockLever) {
+                Boolean powered = state.getValue(BlockLever.POWERED);
+                list.add(String.format(TextFormatting.GRAY+"State: "+ TextFormatting.YELLOW+"%s", powered ? "On" : "Off"));
+            } else if (block instanceof BlockRedstoneComparator) {
+                BlockRedstoneComparator.Mode mode = state.getValue(BlockRedstoneComparator.MODE);
+                list.add(String.format(TextFormatting.GRAY+"Mode: "+TextFormatting.YELLOW+"%s", mode.getName()));
+            } else if (block instanceof BlockRedstoneRepeater) {
+                Boolean locked = state.getValue(BlockRedstoneRepeater.LOCKED);
+                Integer delay = state.getValue(BlockRedstoneRepeater.DELAY);
+                list.add(String.format(TextFormatting.GRAY+"Delay: "+TextFormatting.YELLOW+"%d ticks", delay));
+                if (locked) {
+                    list.add(TextFormatting.RED + "Locked");
+                }
+            } else if (block instanceof BlockRedstoneWire) {
+                int redstonePower;
+                if (block instanceof BlockRedstoneWire) {
+                    redstonePower = state.getValue(BlockRedstoneWire.POWER);
+                } else {
+                    redstonePower = mc.theWorld.getRedstonePower(objectMouseOver.getBlockPos(), objectMouseOver.sideHit.getOpposite());
+                }
+                list.add(String.format(TextFormatting.GRAY+"Power: "+TextFormatting.YELLOW+"%d", redstonePower));
+            }
+
+            if (block instanceof BlockCrops) {
+                BlockCrops crops = (BlockCrops) block;
+                int age = state.getValue(BlockCrops.AGE);
+                int maxAge = crops.getMaxAge();
+                if (crops.isMaxAge(state)) {
+                    list.add(TextFormatting.GREEN + "Fully grown");
+                } else {
+                    list.add(String.format(TextFormatting.GRAY + "Growth: " + TextFormatting.YELLOW + "%d%%",(age * 100) / maxAge));
+                }
+            } else if (block instanceof BlockNetherWart) {
+                int age = state.getValue(BlockNetherWart.AGE);
+                int maxAge = 3;
+                if (age == maxAge) {
+                    list.add(TextFormatting.GREEN + "Fully grown");
+                } else {
+                    list.add(String.format(TextFormatting.GRAY + "Growth: " + TextFormatting.YELLOW + "%d%%",(age * 100) / maxAge));
+                }
+            }
+
+            // Always display mod info last!
+            ModContainer container = Loader.instance().getIndexedModList().get(resourceLocation.getResourceDomain());
+            if(container != null)
+                list.add(TextFormatting.ITALIC + "" + container.getName());
+            else if(resourceLocation.getResourceDomain().equals("minecraft"))
+                list.add(TextFormatting.ITALIC + "Minecraft");
+            else
+                list.add(TextFormatting.ITALIC + "" + TextFormatting.RED + "Unknown");
+        }
+    }
+
+    public void AddEntityInfo(List<String> list, RayTraceResult objectMouseOver)
+    {
+        if(objectMouseOver.typeOfHit == RayTraceResult.Type.ENTITY) {
+
+            Entity entity = objectMouseOver.entityHit;
+            String id = EntityList.getEntityString(entity);
+
+            if (id == null && entity instanceof EntityPlayer)
+                id = "Player";
+            else if (id == null && entity instanceof EntityLightningBolt)
+                id = "LightningBolt";
+
+            list.add(TextFormatting.YELLOW + id + " (ID: " + entity.getEntityId() + ")");
+
+            // TODO: Missing sync?
+            if (entity instanceof EntityLiving) {
+                EntityLivingBase livingEntity = ((EntityLiving) entity);
+                list.add(String.format("%.0f/%.0f", livingEntity.getHealth(), livingEntity.getMaxHealth()));
+
+                Collection<net.minecraft.potion.PotionEffect> effects = livingEntity.getActivePotionEffects();
+                if (!effects.isEmpty()) {
+                    for (net.minecraft.potion.PotionEffect effect : effects) {
+                        net.minecraft.potion.Potion potion = effect.getPotion();
+                        String s1 = net.minecraft.util.text.translation.I18n.translateToLocal(effect.getEffectName()).trim();
+                        if (effect.getAmplifier() > 0) {
+                            s1 += String.format(" %s", net.minecraft.util.text.translation.I18n.translateToLocal("potion.potency." + effect.getAmplifier()).trim());
+                        }
+
+                        if (effect.getDuration() > 20) {
+                            s1 += String.format(" (%s)", net.minecraft.potion.Potion.getPotionDurationString(effect, 1.0f));
+                        }
+
+                        if (potion.isBadEffect()) {
+                            list.add(TextFormatting.RED + s1);
+                        } else {
+                            list.add(TextFormatting.GREEN + s1);
+                        }
+                    }
+                }
+
+                // Owner infos
+                UUID ownerId = null;
+                if (entity instanceof IEntityOwnable) {
+                    ownerId = ((IEntityOwnable) entity).getOwnerId();
+                } else if (entity instanceof EntityHorse) {
+                    ownerId = ((EntityHorse) entity).getOwnerUniqueId();
+                }
+
+                if (ownerId != null) {
+                    String username = UsernameCache.getLastKnownUsername(ownerId);
+                    if (username == null) {
+                        list.add(TextFormatting.RED + "Unknown owner");
+                    } else {
+                        list.add(TextFormatting.GRAY + "Owned by: " + TextFormatting.YELLOW + username);
+                    }
+                }
+
+                // Horse infos
+                if (entity instanceof EntityHorse) {
+                    double jumpStrength = ((EntityHorse) entity).getHorseJumpStrength();
+                    double jumpHeight = -0.1817584952 * jumpStrength * jumpStrength * jumpStrength + 3.689713992 * jumpStrength * jumpStrength + 2.128599134 * jumpStrength - 0.343930367;
+                    list.add(String.format(TextFormatting.GRAY + "Jump height: " + TextFormatting.YELLOW + "%.2f", jumpHeight));
+                    IAttributeInstance iattributeinstance = ((EntityHorse) entity).getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+                    list.add(String.format(TextFormatting.GRAY + "Speed: " + TextFormatting.YELLOW + "%.2f", iattributeinstance.getAttributeValue()));
+                }
+
+                // Collar color
+                if (entity instanceof EntityWolf) {
+                    EnumDyeColor collarColor = ((EntityWolf) entity).getCollarColor();
+                    list.add(TextFormatting.GRAY + "Speed: " + TextFormatting.YELLOW + collarColor.getName());
+                }
+
+                if(entity instanceof EntityVillager)
+                {
+                    EntityVillager villager = ((EntityVillager)entity);
+                    list.add(String.format("Profession: "+TextFormatting.YELLOW+"%s", I18n.translateToLocal(villager.getDisplayName().getUnformattedText())));
+                }
+
+                if(entity instanceof EntityZombie){
+                    EntityZombie zombie = ((EntityZombie)entity);
+                    if(zombie.isChild())
+                        list.add(TextFormatting.YELLOW+"Baby Zombie");
+                    if(zombie.isVillager())
+                        list.add(TextFormatting.YELLOW+"Zombie Villager");
+                    if(zombie.isConverting())
+                        list.add(TextFormatting.YELLOW+"Transforming into Villager...");
+                }
+            }
+
+            int i = id.indexOf(".");
+            if (i >= 0) {
+                String domain = id.substring(0, i);
+                ModContainer container = Loader.instance().getIndexedModList().get(domain);
+                if (container != null)
+                    list.add(TextFormatting.ITALIC + "" + container.getName());
+                else
+                    list.add(TextFormatting.ITALIC + "" + TextFormatting.RED + "Unknown");
+            } else
+                list.add(TextFormatting.ITALIC + "Minecraft");
+        }
+    }
 	
 	public int chatOffset = 0;
 	
@@ -258,7 +405,7 @@ public class ScreenRenderHandler {
 			return;
 		
 		//isHelperOpen = Mouse.isButtonDown(0);
-		if(ClientHelper.mc.currentScreen instanceof GuiChat) {
+		if(mc.currentScreen instanceof GuiChat) {
 			ScaledResolution scaling = event.getResolution();
 			if(this.isHelperOpen) {
 				event.setPosY(event.getPosY() + 1000);
@@ -291,7 +438,7 @@ public class ScreenRenderHandler {
         GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.disableAlpha();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
         GlStateManager.shadeModel(7425);
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer worldrenderer = tessellator.getBuffer();
@@ -305,6 +452,11 @@ public class ScreenRenderHandler {
         GlStateManager.disableBlend();
         GlStateManager.enableAlpha();
         GlStateManager.enableTexture2D();
+
+        // Forge fix. Forge fixed that on 1.11.. But is still buggy in 1.10.
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 	
 	public void drawHoveringText(List textList, int mouseX, int mouseY, int width, int height, FontRenderer font, boolean titled) {
@@ -314,15 +466,14 @@ public class ScreenRenderHandler {
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             int k = 0;
-            Iterator iterator = textList.iterator();
 
-            while(iterator.hasNext()) {
-                String s = (String)iterator.next();
-                int l = font.getStringWidth(s);
+			for (Object aTextList : textList) {
+				String s = (String) aTextList;
+				int l = font.getStringWidth(s);
 
-                if (l > k)
-                    k = l;
-            }
+				if (l > k)
+					k = l;
+			}
 
             int i1 = mouseX + 12;
             int j1 = mouseY - 12;
@@ -336,6 +487,8 @@ public class ScreenRenderHandler {
 
             if (j1 + k1 + 6 > height)
                 j1 = height - k1 - 6;
+
+            k += 50;
 
             int l1 = -267386864;
             this.drawGradientRect(i1 - 3, j1 - 4, i1 + k + 3, j1 - 3, l1, l1);
@@ -352,14 +505,15 @@ public class ScreenRenderHandler {
 
             for(int k2 = 0; k2 < textList.size(); ++k2) {
                 String s1 = (String)textList.get(k2);
-                font.drawStringWithShadow(s1, i1, j1, -1);
+                font.drawStringWithShadow(s1, i1 + 25, j1, -1);
+                //font.drawStringWithShadow(s1, i1, j1, -1);
 
                 if(k2 == 0 && titled)
                     j1 += 2;
 
                 j1 += 10;
             }
-            
+
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             RenderHelper.enableGUIStandardItemLighting();
@@ -373,10 +527,10 @@ public class ScreenRenderHandler {
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer worldrenderer = tessellator.getBuffer();
         worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
-        worldrenderer.pos((double)(x + 0), (double)(y + height), (double)100).tex((double)((float)(textureX + 0) * f), (double)((float)(textureY + height) * f1)).endVertex();
+        worldrenderer.pos((double)(x), (double)(y + height), (double)100).tex((double)((float)(textureX) * f), (double)((float)(textureY + height) * f1)).endVertex();
         worldrenderer.pos((double)(x + width), (double)(y + height), (double)100).tex((double)((float)(textureX + width) * f), (double)((float)(textureY + height) * f1)).endVertex();
-        worldrenderer.pos((double)(x + width), (double)(y + 0), (double)100).tex((double)((float)(textureX + width) * f), (double)((float)(textureY + 0) * f1)).endVertex();
-        worldrenderer.pos((double)(x + 0), (double)(y + 0), (double)100).tex((double)((float)(textureX + 0) * f), (double)((float)(textureY + 0) * f1)).endVertex();
+        worldrenderer.pos((double)(x + width), (double)(y), (double)100).tex((double)((float)(textureX + width) * f), (double)((float)(textureY) * f1)).endVertex();
+        worldrenderer.pos((double)(x), (double)(y), (double)100).tex((double)((float)(textureX) * f), (double)((float)(textureY) * f1)).endVertex();
         tessellator.draw();
     }
 	

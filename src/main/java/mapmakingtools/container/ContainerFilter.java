@@ -154,7 +154,6 @@ public class ContainerFilter extends Container implements IContainerFilter {
 			slot.putStack(phantomStack);
 		}
 		else if(slotStack != null) {
-			
 			if(mouseButton == 2) {
 				slot.putStack(null);
 				if(slot.inventory instanceof IUnlimitedInventory)
@@ -164,7 +163,7 @@ public class ContainerFilter extends Container implements IContainerFilter {
 			}
 			else {
 				int stackSize = mouseButton == 1 ? slotStack.stackSize + 1: slotStack.stackSize - 1;
-			
+
 				if(stackSize > 1 && phantomSlot.canBeUnlimited() && phantomSlot.isUnlimited()) {
 					stackSize = 1;
 					if(slot.inventory instanceof IUnlimitedInventory)

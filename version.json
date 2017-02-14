@@ -1,11 +1,12 @@
 {
 	"homepage": "https://github.com/Subtixx/MapMakingTools/releases",
 	"1.10.2": {
+		"2.5.2": "Added more overlay options\nAdded entity and block rendering to overlay\nFixed Villager editor",
 		"2.5.1": "Fixed issues with mob spawners\nFixed issues with quick build rendering\nAdded Mod Config\nAdded Update checker",
 		"2.5.0": "Updated to 1.10.2"
 	},
 	"promos": {
-		"1.10.2-latest": "2.5.1",
-		"1.10.2-recommended": "2.5.1"
+		"1.10.2-latest": "2.5.2",
+		"1.10.2-recommended": "2.5.2"
 	}
 }

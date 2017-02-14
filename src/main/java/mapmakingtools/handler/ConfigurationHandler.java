@@ -1,31 +1,55 @@
 package mapmakingtools.handler;
 
-import mapmakingtools.lib.Constants;
+import mapmakingtools.lib.Reference;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import java.io.File;
 
 /**
  * @author ProPercivalalb
  */
 public class ConfigurationHandler {
-
     public static Configuration config;
-	public static void initConfig(Configuration conf) {
-	    config = conf;
-		config.load();
 
-		loadConfig();
+    public static boolean showBlockIdHelper = true;
+    public static boolean renderFilledBox = true;
+    public static boolean renderSelectedPosition = true;
+    public static boolean renderAllBlock = false;
 
-		config.save();
-	 }
+    public static boolean forceOp = true;
+    public static boolean forceCreative = true;
 
-	 public static void loadConfig(){
-         Constants.SHOULD_SHOW_BLOCK_ID_HELPER = config.get("general", "shouldShowBlockIdHelper", true, "Defines whether the block in the chat menu should show").getBoolean(true);
-         Constants.RENDER_FILLED_CUBOID = config.get("general", "renderFilledBox", true, "Defines whether the preview selection box should be filled").getBoolean(false);
-         Constants.RENDER_SELECTED_POSITION = config.get("general", "renderSelectedPosition", true, "Defines whether to highlight the selected positions").getBoolean(false);
-         Constants.RENDER_ALL_BLOCKS = config.get("general", "renderAllBlocks", true, "Defines whether to highlight all blocks inside the selection").getBoolean(false);
+    public static void loadConfig(File configFile) {
+        config = new Configuration(configFile);
+
+        config.load();
+        load();
+
+        MinecraftForge.EVENT_BUS.register(ChangeListener.class);
+    }
+
+	 public static void load(){
+         showBlockIdHelper = config.get("general", "shouldShowBlockIdHelper", true, "Defines whether the block in the chat menu should show").getBoolean(true);
+         renderFilledBox = config.get("general", "renderFilledBox", true, "Defines whether the preview selection box should be filled").getBoolean(false);
+         renderSelectedPosition = config.get("general", "renderSelectedPosition", true, "Defines whether to highlight the selected positions").getBoolean(false);
+         renderAllBlock = config.get("general", "renderAllBlocks", false, "Defines whether to highlight all blocks inside the selection").getBoolean(false);
 
          // TODO: Maybe change these two to allow swapping. Like either op or creative, op and creative, op, creative.
-         Constants.HAS_TO_BE_OPPED = config.get("general", "opOnly", true, "Defines whether the quick build is only for ops").getBoolean(true);
-         Constants.HAS_TO_BE_CREATIVE = config.get("general", "creativeOnly", true, "Defines whether the quick build is only available in creative").getBoolean(true);
+         forceOp = config.get("general", "opOnly", true, "Defines whether the quick build is only for ops").getBoolean(true);
+         forceCreative = config.get("general", "creativeOnly", true, "Defines whether the quick build is only available in creative").getBoolean(true);
+
+         if(config.hasChanged())
+             config.save();
      }
+
+    public static class ChangeListener {
+        @SubscribeEvent
+        public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
+            if(eventArgs.getModID().equals(Reference.MOD_ID))
+                load();
+        }
+    }
 }
