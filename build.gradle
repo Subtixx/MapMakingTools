@@ -1,29 +1,45 @@
 buildscript {
     repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
     }
 }
+apply plugin: 'net.minecraftforge.gradle.forge'
+//Only edit below this line, the above code adds and enables the nessasary things for Forge to be setup.
 
-apply plugin: 'forge'
+ext.configFile = file('build.properties')
 
-version = "v1.9.0d"
-group= "com.propercivalalb.doggytalents" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "doggytalents"
+ext.config = parseConfig(configFile)
+
+version = "${config.version}.${config.build_number}"
+//version = "v2.5.1a"
+group= "mapmakingtools" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "mapmakingtools"
+
+sourceCompatibility = targetCompatibility = "1.6" // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.6"
+}
 
 minecraft {
-    version = "1.7.10-10.13.0.1180"
-    assetDir = "eclipse/assets"
+    // version = "1.10.2-12.18.3.2221"
+	version = "${config.mc_version}-${config.forge_version}"
+    runDir = "run"
+    
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not allways work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = "snapshot_20160518"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+	
+	replace '@BUILDERNUMBER@', config.build_number
+    replace '@GRADLEVERSION@', config.version
+	replaceIn 'Reference.java' //I may have missed another file, though I can only find it in here.
 }
 
 dependencies {
@@ -36,10 +52,23 @@ dependencies {
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
 
+    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
+    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+
+    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
+    // except that these dependencies get remapped to your current MCP mappings
+    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+}
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 processResources
@@ -60,4 +89,40 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+}
+
+/**
+ * These, go outside of the processResources {}* Though, this was added with the NEI intergation commit (8bf4680)
+ */
+task deobfJar(type: Jar) {
+    from(sourceSets.main.output)
+	archiveName = "${baseName}.${version}-deobf.${extension}"
+}
+
+artifacts {
+    archives deobfJar
+}
+
+task incrementBuildNumber(dependsOn: 'reobfJar') << {
+    config.build_number = (config.build_number.toString().toInteger()) + 1
+    configFile.withWriter {
+        config.toProperties().store(it, "")
+    }
+
+    file('web/versions.ini').append("\n${version}=${minecraft.version}")
+    file("${config.dir_repo}/version/${minecraft.version}.txt").write("${version}")
+}
+
+def parseConfig(File config) {
+    config.withReader {
+        def prop = new Properties()
+        prop.load(it)
+        return (new ConfigSlurper().parse(prop))
+    }
+}
+
+
+jar {
+    //rename the default output, for some better... sanity with scipts
+    archiveName = "${baseName}.${version}.${extension}"
 }

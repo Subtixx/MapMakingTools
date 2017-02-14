@@ -1,10 +1,11 @@
 {
-  "versions": {
-    "1.8-recommended": "v2.3.3a",
-    "1.8.9-recommended": "v2.4.0a"
-  },
-  "links": {
-    "v2.3.0a": "http://adfoc.us/14766156032436",
-    "v2.4.0a": "http://adfoc.us/14766158557631"
-  }
+	"homepage": "https://github.com/Subtixx/MapMakingTools/releases",
+	"1.10.2": {
+		"2.5.1": "Fixed issues with mob spawners\nFixed issues with quick build rendering\nAdded Mod Config\nAdded Update checker",
+		"2.5.0": "Updated to 1.10.2"
+	},
+	"promos": {
+		"1.10.2-latest": "2.5.1",
+		"1.10.2-recommended": "2.5.1"
+	}
 }
